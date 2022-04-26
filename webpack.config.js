@@ -24,8 +24,8 @@ module.exports = {
         new HtmlWebpackPlugin({
             template: './src/index.html'
         }),
-        new WebpackObfuscator ({
-            rotateStringArray: true
-        })
+        // new WebpackObfuscator ({
+        //     rotateStringArray: true
+        // })
     ]
 };

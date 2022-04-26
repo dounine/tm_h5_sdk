@@ -2,51 +2,68 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>tm_h5_sdk test</title></head>
+    <title>tm_h5_sdk test</title>
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+</head>
 <body>
-<div class="app"></div>
-<pre id="login"></pre>
-<button onclick="pay()" id="payButton" disabled="disabled">支付测试</button>
-<pre id="pay"></pre>
-<script src="index.js"></script>
+<!--<script src="index.js"></script>-->
+<button style="margin:20px;font-size:30px;" onclick="pay()">支付</button>
 </body>
-<script>window.TMSDK.config({
-    appid: "tm24b3208f8730fb4f",
-    appKey: "62834041b96f11ec9e1cc968ca9ce661",
-    programId: "62834041b96f11ec9e1cc968ca9ce661"
-});
-let open_id = '';
+<script>
+    window.TMSDK.config({
+        appid: "tm035dc36fbbad5d36",
+        appKey: "0e60f6a1b71311ec9e1cc968ca9ce661",
+        programId: "0e60f6a1b71311ec9e1cc968ca9ce661"
+    });
+    let open_id = '';
 
-function pay() {
-    /**
-     * 微信支付
-     */
-    window.TMSDK.pay({
-        coin: 1,//支付金额，单位角
-        open_id: open_id,//用户open_id
-        program_param: 'test',//参数
-        goodsName: '测试商品',//商品名称
-        zone: '无区服',//区服
-        gameUid: '1234',//游戏id
-        gameNickname: '张三'//游戏昵称
-    })
-        .then(function (data) {
-            /**
-             * {"err":0,"data":{"url":"weixin://dl/business/?t=8p6QkFvEo3v"},"msg":"请求成功"}
-             */
-            console.log('pay result', data.data);
-            document.getElementById('pay').innerHTML = JSON.stringify(data.data);
-            window.location.href = data.data.data.url;
+    function pay() {
+        /**
+         * 微信支付
+         */
+        window.TMSDK.pay({
+            coin: 1,//支付金额，单位角
+            open_id: open_id,//用户open_id
+            program_param: 'test',//参数
+            goodsName: '测试商品',//商品名称
+            zone: '无区服',//区服
+            gameUid: '1234',//游戏id
+            gameNickname: '张三'//游戏昵称
         })
-}
+            .then(function (data) {
+                // {
+                //     "err": 0,
+                //     "data": {
+                //     "item": {
+                //         "return_code": "SUCCESS",
+                //             "return_msg": "OK",
+                //             "result_code": "SUCCESS",
+                //             "mch_id": "1601088184",
+                //             "appid": "wxc8c4124c08aa0ba5",
+                //             "nonce_str": "Wtor8VTWbfg0qYnb",
+                //             "sign": "7AC047746487F684B5B6BD8A3D69E854",
+                //             "prepay_id": "wx1516035196919192c7fdc6fb8327c80000",
+                //             "trade_type": "MWEB",
+                //             "mweb_url": "https://wx.tenpay.com/cgi-bin/mmpayweb-bin/checkmweb?prepay_id=wx1516035196919192c7fdc6fb8327c80000&package=1916572864",
+                //             "order_code": "165000983162971364"
+                //     }
+                // },
+                //     "msg": "请求成功"
+                // }
+                console.log('pay result', data.data);
+                // document.getElementById('pay').innerHTML = JSON.stringify(data.data);
+                // window.location.href = data.data.data.item.mweb_url;
+                // document.getElementById('url').setAttribute('href', data.data.data.item.mweb_url);
+            })
+    }
 
-/**
- * 登录获取用户信息
- * code为空默认从使用浏览器参数中获取
- */
-window.TMSDK.login({code: '41f9d3548da22318fdce9c9bab02770d'}).then(function (data) {
     /**
-     * {
+     * 登录获取用户信息
+     * code为空默认从使用浏览器参数中获取
+     */
+    window.TMSDK.login({code: 'ee02cc30e7b240d1b35f5aacb3101ec9'}).then(function (data) {
+        /**
+         * {
     "err": 0,
     "data": {
         "app_id": "wx89db9ff783f2bef9",
@@ -80,47 +97,47 @@ window.TMSDK.login({code: '41f9d3548da22318fdce9c9bab02770d'}).then(function (da
     },
     "msg": "请求成功"
 }
-     */
-    console.log('login result', data.data.data)
-    open_id = data.data.data.open_id;
+         */
+        console.log('login result', data.data.data)
+        open_id = data.data.data.open_id;
 
-    if (open_id) {
-        document.getElementById('payButton').removeAttribute('disabled');
-    }
-    document.getElementById('login').innerHTML = JSON.stringify(data.data);
+        // if (open_id) {
+        //     document.getElementById('payButton').removeAttribute('disabled');
+        // }
+        // document.getElementById('login').innerHTML = JSON.stringify(data.data);
 
 
-    window.TMSDK.identifyQuery({
-        open_id
-    })
-        .then(function (identifyData) {
-            //{"err":0,"data":{"result":true},"msg":"请求成功"}
-            console.log('identifyQuery result', JSON.stringify(identifyData.data));
-            if (!identifyData.data.data.result) {
-                /**
-                 * 游戏上线上报
-                 */
-                window.TMSDK.identifyReport({
-                    open_id
-                })
-                    .then(function (identifyData) {
-                        console.log('identifyReport report', identifyData.data)
-                    })
-            } else {
-                /**
-                 *
-                 */
-                window.TMSDK.identify({
-                    open_id,
-                    name: "张竹英",
-                    id_card: "530127196201170441"
-                })
-                    .then(function (identifyData) {
-                        console.log('identify result', JSON.stringify(identifyData.data))
-                    })
-            }
-
+        window.TMSDK.identifyQuery({
+            open_id
         })
+            .then(function (identifyData) {
+                //{"err":0,"data":{"result":true},"msg":"请求成功"}
+                console.log('identifyQuery result', JSON.stringify(identifyData.data));
+                if (!identifyData.data.data.result) {
+                    /**
+                     * 游戏上线上报
+                     */
+                    window.TMSDK.identifyReport({
+                        open_id
+                    })
+                        .then(function (identifyData) {
+                            console.log('identifyReport report', identifyData.data)
+                        })
+                } else {
+                    /**
+                     *
+                     */
+                    window.TMSDK.identify({
+                        open_id,
+                        name: "张竹英",
+                        id_card: "530127196201170441"
+                    })
+                        .then(function (identifyData) {
+                            console.log('identify result', JSON.stringify(identifyData.data))
+                        })
+                }
 
-});</script>
+            })
+
+    });</script>
 </html>
