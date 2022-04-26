@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "webpack-dev-server --open --host 127.0.0.1 --port 3000",
-    "build": "webpack --mode=production"
+    "build": "webpack --mode=production",
+    "buildTest": "webpack"
   },
   "repository": {
     "type": "git",
