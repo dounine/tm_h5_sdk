@@ -61,7 +61,9 @@
      * 登录获取用户信息
      * code为空默认从使用浏览器参数中获取
      */
-    window.TMSDK.login({code: 'ee02cc30e7b240d1b35f5aacb3101ec9'}).then(function (data) {
+    // window.TMSDK.login({code: 'ee02cc30e7b240d1b35f5aacb3101ec9'}).then(function (data) {
+        window.TMSDK.login({code: ''}).then(function (response) {
+            console.log(response)
         /**
          * {
     "err": 0,
@@ -98,8 +100,8 @@
     "msg": "请求成功"
 }
          */
-        console.log('login result', data.data.data)
-        open_id = data.data.data.open_id;
+        console.log('login result', response.data.data)
+        open_id = response.data.data.open_id;
 
         // if (open_id) {
         //     document.getElementById('payButton').removeAttribute('disabled');

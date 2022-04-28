@@ -3,6 +3,7 @@ import axios from 'axios';
 import guide from './guide';
 import loading from './loading';
 import payWindow from './pay';
+import Login from './login';
 
 const TAGNAME = "tm_h5_sdk";
 
@@ -17,6 +18,7 @@ class TMSDK {
         this._device = isAndroid ? "android" : "ios";
         this._params = this.getWindowUrlParams();
         console.log('params', this._params);
+        // loginVar.create();
         if (this.is_weixn()) {
             guide.create(!isAndroid);
         }
@@ -143,25 +145,96 @@ class TMSDK {
     login({
               code = ''
           }) {
-        let copyCoce = (code || this._params["st"]) || '';
+        let self = this;
+        let copyCoce = (code || localStorage.getItem('token') || this._params["st"]) || '';
         console.log(TAGNAME, `tmsdk login with code : ${copyCoce}`);
         let timestamp = new Date().getTime();
-        let data = {
-            code: copyCoce,
-            timestamp
-        };
-        return axios.post(
-            `https://api.kuaiyugo.com/api/platuser/v1/programs/${this._programId}/h5_sessions`,
-            Object.assign(
-                data,
-                {
-                    sign: this.sign({
-                        signBody: data,
-                        programId: this._programId
-                    })
-                }
-            )
-        )
+        if (copyCoce) {
+            let data = {
+                code: copyCoce,
+                timestamp
+            };
+            return new Promise(function (resolve, reject) {
+                axios.post(
+                    `https://api.kuaiyugo.com/api/platuser/v1/programs/${self._programId}/h5_sessions`,
+                    Object.assign(
+                        data,
+                        {
+                            sign: self.sign({
+                                signBody: data,
+                                programId: self._programId
+                            })
+                        }
+                    )
+                ).then(function (response) {
+                    if (!response.data.data.tel) {//没有绑定手机号
+                        let loginVar = new Login({
+                            isBind: true,
+                            open_id: response.data.data.open_id,
+                            programId: self._programId,
+                            loginFailCallback: function (msg) {
+                                resolve({
+                                    data: {
+                                        err: -1,
+                                        msg
+                                    }
+                                })
+                            },
+                            loginSuccessCallback: function (_response) {
+                                resolve(response);
+                            }
+                        });
+                    } else {//直接登录
+                        resolve(response);
+                    }
+                }).catch(function (response) {
+                    localStorage.removeItem('token');
+                    let loginVar = new Login({
+                        isBind: false,
+                        programId: self._programId,
+                        loginFailCallback: function (msg) {
+                            resolve({
+                                data: {
+                                    err: -1,
+                                    msg
+                                }
+                            })
+                        },
+                        loginSuccessCallback: function (response) {
+                            resolve({
+                                data: {
+                                    err: response.data.err,
+                                    data: response.data.data.user_info,
+                                    msg: response.data.msg
+                                }
+                            });
+                        }
+                    });
+                })
+            })
+        } else {
+            return new Promise(function (resolve, reject) {
+                let loginVar = new Login({
+                    programId: self._programId,
+                    isBind: false,
+                    loginFailCallback: function (msg) {
+                        resolve({
+                            err: -1,
+                            msg
+                        })
+                    },
+                    loginSuccessCallback: function (response) {
+                        resolve({
+                            data: {
+                                err: response.data.err,
+                                data: response.data.data.user_info,
+                                msg: response.data.msg
+                            }
+                        });
+                    }
+                });
+            })
+        }
     }
 
     pay({
