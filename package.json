@@ -5,7 +5,7 @@
   "main": "src/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "webpack-dev-server --open --host 127.0.0.1 --port 3000",
+    "dev": "webpack-dev-server --open --host 0.0.0.0 --port 3000",
     "build": "webpack --mode=production",
     "buildTest": "webpack"
   },
@@ -34,6 +34,7 @@
   },
   "devDependencies": {
     "@webpack-cli/serve": "^1.6.1",
+    "vconsole": "^3.14.6",
     "webpack-cli": "^4.9.2",
     "webpack-dev-server": "^4.8.1",
     "webpack-obfuscator": "^2.6.0"

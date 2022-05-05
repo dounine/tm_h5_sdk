@@ -4,12 +4,16 @@ import guide from './guide';
 import loading from './loading';
 import payWindow from './pay';
 import Login from './login';
+import Vconsole from 'vconsole'
+
+const vConsole = new Vconsole()
 
 const TAGNAME = "tm_h5_sdk";
 
 class TMSDK {
     constructor(props) {
         console.log('tmsdk init');
+        let self = this;
         this._appid = "";
         this._appKey = "";
         this._programId = "";
@@ -22,7 +26,27 @@ class TMSDK {
         if (this.is_weixn()) {
             guide.create(!isAndroid);
         }
-
+        this.receiveToken = function (token) {
+            console.log('receive token ', token);
+        }
+        vConsole.show();
+        window.addEventListener('message', function (event) {
+            if (event.data.type === "token" && self.receiveToken) {
+                console.log('receive token', event.data)
+                self.receiveToken(event.data.value);
+            }
+        }, false);
+        // window.top.postMessage({type: 'get', key: 'token'}, "*");
+        // window.top.postMessage({type: 'set', key: 'token', value: '123'}, "*");
+        // window.parent.postMessage({
+        //     type: 'get', key: 'token', callback: function (value) {
+        //         console.log('token with', value)
+        //     }
+        // }, "*");
+        // window.top.postMessage({
+        //     type: 'set', key: 'token', value: 'hello'
+        // }, "*");
+        // parent.setItem("token", "123");
         this.addMeta("viewport", "width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0");
         // this.pay({
         //     coin: 1,//支付金额，单位角
@@ -146,31 +170,78 @@ class TMSDK {
               code = ''
           }) {
         let self = this;
-        let copyCoce = (code || localStorage.getItem('token') || this._params["st"]) || '';
-        console.log(TAGNAME, `tmsdk login with code : ${copyCoce}`);
-        let timestamp = new Date().getTime();
-        if (copyCoce) {
-            let data = {
-                code: copyCoce,
-                timestamp
-            };
-            return new Promise(function (resolve, reject) {
-                axios.post(
-                    `https://api.kuaiyugo.com/api/platuser/v1/programs/${self._programId}/h5_sessions`,
-                    Object.assign(
-                        data,
-                        {
-                            sign: self.sign({
-                                signBody: data,
-                                programId: self._programId
-                            })
+        window.top.postMessage({type: 'get', name: 'token', key: 'token'}, "*");
+        return new Promise(function (resolve, reject) {
+            self.receiveToken = function (token) {
+                let copyToken = (code || token || this._params["st"]) || '';
+                let timestamp = new Date().getTime();
+                if (copyToken) {
+                    console.log('有缓存token，正在尝试登录', copyToken)
+                    let data = {
+                        code: copyToken,
+                        timestamp
+                    };
+                    axios.post(
+                        `https://api.kuaiyugo.com/api/platuser/v1/programs/${self._programId}/h5_sessions`,
+                        Object.assign(
+                            data,
+                            {
+                                sign: self.sign({
+                                    signBody: data,
+                                    programId: self._programId
+                                })
+                            }
+                        )
+                    ).then(function (response) {
+                        if (response.data.err !== 0) {//失效
+                            console.log('token错误，重新登录，并且删除');
+                            window.top.postMessage({type: 'remove', key: 'token'}, "*");
+                            new Login({
+                                programId: self._programId,
+                                isBind: false,
+                                loginFailCallback: function (msg) {
+                                    resolve({
+                                        err: -1,
+                                        msg
+                                    })
+                                },
+                                loginSuccessCallback: function (response) {
+                                    resolve({
+                                        data: {
+                                            err: response.data.err,
+                                            data: response.data.data.user_info,
+                                            msg: response.data.msg
+                                        }
+                                    });
+                                }
+                            });
+                        } else if (!response.data.data.tel) {//没有绑定手机号
+                            console.log('登录成功，但没有绑定手机号，弹出绑定手机号');
+                            new Login({
+                                isBind: true,
+                                open_id: response.data.data.open_id,
+                                programId: self._programId,
+                                loginFailCallback: function (msg) {
+                                    resolve({
+                                        data: {
+                                            err: -1,
+                                            msg
+                                        }
+                                    })
+                                },
+                                loginSuccessCallback: function (_response) {
+                                    resolve(response);
+                                }
+                            });
+                        } else {//直接登录
+                            console.log('已经绑定手机号，直接返回');
+                            resolve(response);
                         }
-                    )
-                ).then(function (response) {
-                    if (!response.data.data.tel) {//没有绑定手机号
-                        let loginVar = new Login({
-                            isBind: true,
-                            open_id: response.data.data.open_id,
+                    }).catch(function (response) {
+                        console.log('token失效403，重新登录，并且删除');
+                        window.top.postMessage({type: 'remove', key: 'token'}, "*");
+                        new Login({
+                            isBind: false,
                             programId: self._programId,
                             loginFailCallback: function (msg) {
                                 resolve({
@@ -180,24 +251,26 @@ class TMSDK {
                                     }
                                 })
                             },
-                            loginSuccessCallback: function (_response) {
-                                resolve(response);
+                            loginSuccessCallback: function (response) {
+                                resolve({
+                                    data: {
+                                        err: response.data.err,
+                                        data: response.data.data.user_info,
+                                        msg: response.data.msg
+                                    }
+                                });
                             }
                         });
-                    } else {//直接登录
-                        resolve(response);
-                    }
-                }).catch(function (response) {
-                    localStorage.removeItem('token');
-                    let loginVar = new Login({
-                        isBind: false,
+                    })
+                } else {
+                    console.log('没有token，直接登录');
+                    new Login({
                         programId: self._programId,
+                        isBind: false,
                         loginFailCallback: function (msg) {
                             resolve({
-                                data: {
-                                    err: -1,
-                                    msg
-                                }
+                                err: -1,
+                                msg
                             })
                         },
                         loginSuccessCallback: function (response) {
@@ -210,31 +283,9 @@ class TMSDK {
                             });
                         }
                     });
-                })
-            })
-        } else {
-            return new Promise(function (resolve, reject) {
-                let loginVar = new Login({
-                    programId: self._programId,
-                    isBind: false,
-                    loginFailCallback: function (msg) {
-                        resolve({
-                            err: -1,
-                            msg
-                        })
-                    },
-                    loginSuccessCallback: function (response) {
-                        resolve({
-                            data: {
-                                err: response.data.err,
-                                data: response.data.data.user_info,
-                                msg: response.data.msg
-                            }
-                        });
-                    }
-                });
-            })
-        }
+                }
+            }
+        });
     }
 
     pay({

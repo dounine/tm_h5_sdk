@@ -3,13 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <title>tm_h5_sdk test</title>
-    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
 </head>
 <body>
 <!--<script src="index.js"></script>-->
 <button style="margin:20px;font-size:30px;" onclick="pay()">支付</button>
 </body>
 <script>
+
     window.TMSDK.config({
         appid: "tm035dc36fbbad5d36",
         appKey: "0e60f6a1b71311ec9e1cc968ca9ce661",
@@ -62,8 +64,8 @@
      * code为空默认从使用浏览器参数中获取
      */
     // window.TMSDK.login({code: 'ee02cc30e7b240d1b35f5aacb3101ec9'}).then(function (data) {
-        window.TMSDK.login({code: ''}).then(function (response) {
-            console.log(response)
+    window.TMSDK.login({code: ''}).then(function (response) {
+        console.log(response)
         /**
          * {
     "err": 0,

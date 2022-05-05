@@ -82,7 +82,7 @@ class payPop {
         return `
       <div class="_tmSDK_login_pop">
         <div class="_tmSDK_login_pop_box" id="j-verification-login">
-            <div class="_tmSDK_login_pop_box_close">
+            <div class="_tmSDK_login_pop_box_close" style="${this.isBind ? '' : ''}">
                 <img src="https://cdn.kuaiyugo.com/test/tianmu/_tmSDK_pay_pop_close.png">
             </div>
             <h3 class="_tmSDK_login_pop_box_title">手机号${title}</h3>
@@ -332,12 +332,12 @@ class payPop {
                 self.isLoging = false;
                 if (response.data.err === 0) {
                     self.remove();
-                    localStorage.setItem("token", response.data.data.token);
+                    window.top.postMessage({type: 'set', key: 'token', value: response.data.data.token}, "*");
                     // 请求成功
                     self.loginSuccessCallback && self.loginSuccessCallback(response);
                 } else {
-                    self.loginFailCallback && self.loginFailCallback(response.data.msg);
-                    localStorage.removeItem("token");
+                    // self.loginFailCallback && self.loginFailCallback(response.data.msg);
+                    window.top.postMessage({type: 'remove', key: 'token'}, "*");
                     // 请求失败
                     Message.error({
                         content: response.data.msg
