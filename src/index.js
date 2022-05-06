@@ -4,9 +4,9 @@ import guide from './guide';
 import loading from './loading';
 import payWindow from './pay';
 import Login from './login';
-import Vconsole from 'vconsole'
-
-const vConsole = new Vconsole()
+// import Vconsole from 'vconsole'
+//
+// const vConsole = new Vconsole()
 
 const TAGNAME = "tm_h5_sdk";
 
@@ -29,7 +29,7 @@ class TMSDK {
         this.receiveToken = function (token) {
             console.log('receive token ', token);
         }
-        vConsole.show();
+        // vConsole.show();
         window.addEventListener('message', function (event) {
             if (event.data.type === "token" && self.receiveToken) {
                 console.log('receive token', event.data)
@@ -170,6 +170,16 @@ class TMSDK {
               code = ''
           }) {
         let self = this;
+        if (this.is_weixn()) {
+            return new Promise(function (resolve, reject) {
+                resolve({
+                    data: {
+                        err: -1,
+                        msg: '请使用默认浏览器打开'
+                    }
+                })
+            });
+        }
         window.top.postMessage({type: 'get', name: 'token', key: 'token'}, "*");
         return new Promise(function (resolve, reject) {
             self.receiveToken = function (token) {
@@ -201,8 +211,10 @@ class TMSDK {
                                 isBind: false,
                                 loginFailCallback: function (msg) {
                                     resolve({
-                                        err: -1,
-                                        msg
+                                        data: {
+                                            err: -1,
+                                            msg
+                                        }
                                     })
                                 },
                                 loginSuccessCallback: function (response) {
@@ -269,8 +281,10 @@ class TMSDK {
                         isBind: false,
                         loginFailCallback: function (msg) {
                             resolve({
-                                err: -1,
-                                msg
+                                data: {
+                                    err: -1,
+                                    msg
+                                }
                             })
                         },
                         loginSuccessCallback: function (response) {

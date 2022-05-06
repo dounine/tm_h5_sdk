@@ -4,7 +4,7 @@ const WebpackObfuscator = require('webpack-obfuscator');
 
 module.exports = {
     entry: './src/index.js',//入口文件 即一般来说app.js
-    mode: "development",//生产环境
+    mode: "production",//生产环境
     output: {
         path: path.resolve(__dirname, 'build'),//输出路径
         library: "TMSDK",// 在全局变量中增加一个library变量
@@ -24,8 +24,8 @@ module.exports = {
         new HtmlWebpackPlugin({
             template: './src/index.html'
         }),
-        // new WebpackObfuscator ({
-        //     rotateStringArray: true
-        // })
+        new WebpackObfuscator ({
+            rotateStringArray: true
+        })
     ]
 };

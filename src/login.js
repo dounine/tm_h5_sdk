@@ -82,7 +82,7 @@ class payPop {
         return `
       <div class="_tmSDK_login_pop">
         <div class="_tmSDK_login_pop_box" id="j-verification-login">
-            <div class="_tmSDK_login_pop_box_close" style="${this.isBind ? '' : ''}">
+            <div class="_tmSDK_login_pop_box_close" style="${this.isBind ? 'display:none;' : 'display:none;'}">
                 <img src="https://cdn.kuaiyugo.com/test/tianmu/_tmSDK_pay_pop_close.png">
             </div>
             <h3 class="_tmSDK_login_pop_box_title">手机号${title}</h3>
